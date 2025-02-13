@@ -27,7 +27,8 @@ public class MoveBlock : MonoBehaviour
         if (plane.Raycast(ray, out var enter))
         {
             mousePosition = ray.GetPoint(enter);
-            rb.velocity = (mousePosition - transform.position).normalized * moveSpeed;
+            mousePosition += new Vector3(0f,1f,0f);
+            rb.velocity = (mousePosition - transform.position).normalized * moveSpeed * Time.fixedDeltaTime;
             rb.constraints = RigidbodyConstraints.None;
             rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
@@ -35,6 +36,7 @@ public class MoveBlock : MonoBehaviour
     private void OnMouseUp()
     {
         isDrag = false;
+        transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         rb.velocity = Vector3.zero;
 
