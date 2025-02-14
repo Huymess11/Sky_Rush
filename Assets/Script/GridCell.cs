@@ -2,13 +2,25 @@ using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements.Experimental;
 
 public class GridCell : MonoBehaviour
 {
     public float gridPosX { get; private set; }
     public float gridPosY { get; private set; }
+    public bool isGate;
+    [ShowIf("isGate", true)]
+    [TabGroup("GATE COLOR")]
+    private GateColorType currentColor;
+    private List<GateColorType> listGateColor;
 
+    public GateColorType _currentColor
+    {
+        get { return currentColor; }
+        set { currentColor = value; }
+    }
 
     [Title("Neighbor")]
     [DisableInEditorMode]
@@ -59,4 +71,13 @@ public class GridCell : MonoBehaviour
         }
     }
 
+}
+public enum GateColorType
+{
+   DO,
+   CAM,
+   VANG,
+   XANH,
+   TIM,
+   HONG
 }
