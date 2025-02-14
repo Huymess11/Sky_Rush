@@ -9,16 +9,28 @@ public class MoveBlock : MonoBehaviour
     private Vector3 mousePosition;
     private Plane plane;
     private Rigidbody rb;
+    private Vector3 offsetMouseDownObject;
+    private Outline outline;
     bool isDrag;
+ //   [SerializeField] private GameObject snapObject;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
         plane = new Plane(Vector3.up, Vector3.zero);
+        outline = GetComponent<Outline>();
     }
     private void OnMouseDown()
     {
         isDrag = true;
+        rb = gameObject.AddComponent<Rigidbody>();
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (plane.Raycast(ray, out var enter))
+        {
+            mousePosition = ray.GetPoint(enter);
+            offsetMouseDownObject = transform.position - mousePosition;
+        }
+        outline.enabled = true;
     }
     private void FixedUpdate()
     {
@@ -27,18 +39,20 @@ public class MoveBlock : MonoBehaviour
         if (plane.Raycast(ray, out var enter))
         {
             mousePosition = ray.GetPoint(enter);
-            mousePosition += new Vector3(0f,1f,0f);
-            rb.velocity = (mousePosition - transform.position).normalized * moveSpeed * Time.fixedDeltaTime;
-            rb.constraints = RigidbodyConstraints.None;
-            rb.constraints = RigidbodyConstraints.FreezeRotation;
+            transform.parent.position = new Vector3(transform.parent.position.x, 0.25f, transform.parent.position.z);
+            rb.velocity = (mousePosition + offsetMouseDownObject - transform.position) * moveSpeed ;
+            rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
         }
     }
     private void OnMouseUp()
     {
+        transform.parent.position = new Vector3(transform.parent.position.x, 0, transform.parent.position.z);
+        transform.position = new Vector3(Mathf.RoundToInt(transform.position.x), transform.position.y, Mathf.RoundToInt(transform.position.z));
+        Destroy(rb);
         isDrag = false;
         transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         rb.velocity = Vector3.zero;
-
+        outline.enabled = false;
     }
 }

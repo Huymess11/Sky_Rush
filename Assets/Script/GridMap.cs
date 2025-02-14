@@ -13,48 +13,18 @@ public class GridMap : MonoBehaviour
     [TabGroup("CREATE GRID")]
     public int height = 5;
     [TabGroup("CREATE GRID")]
-    public GameObject panelPrefab; 
+    public GridCell panelPrefab; 
 
-    [HideInInspector]
-    public Cell[,] grid;
-    [HideInInspector]
-    public List<GameObject> cellList;
+   [HideInInspector]
+    public List<GridCell> cellList;
 
-    
-    private void Awake()
-    {
-        GenerateGrid();
-    }
-
+    #region CREATE GRID
     [TabGroup("CREATE GRID")]
     [GUIColor(0.3f, 0.8f, 0.3f)]
     [Button("CREATE GRID",ButtonSizes.Large)]
     private void GenerateGrid()
     {
-        ClearGrid();
-        
-        grid = new Cell[width, height];
-        Vector3 gridCenter = CalculateGridCenter();
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                Vector3 position = new Vector3(i, 0, j) - gridCenter;
-                Transform obj = Instantiate(panelPrefab.transform, position, Quaternion.identity,transform);
-                obj.name = $"Cell[{i},{j}]";
-                obj.transform.SetParent(transform);
-                grid[i, j] = new Cell(true, position, obj);
-                cellList.Add(obj.gameObject);
-            }
-        }
-        CustomCellDrawing = new bool[width, height];
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                CustomCellDrawing[x, y] = true;
-            }
-        }
+        SpawnGridCell();
     }
 
     [TabGroup("CREATE GRID")]
@@ -66,7 +36,10 @@ public class GridMap : MonoBehaviour
         {
             foreach (var child in cellList)
             {
-                DestroyImmediate(child);
+                if (child != null)
+                {
+                    DestroyImmediate(child.gameObject);
+                }
             }
             cellList.Clear();
         }
@@ -74,17 +47,44 @@ public class GridMap : MonoBehaviour
     private Vector3 CalculateGridCenter()
     {
         float centerX = (width - 1) * 0.5f;
-        float centerZ = (height - 1) * 0.5f/5;
+        float centerZ = (height - 1) * 0.5f;
         return new Vector3(centerX, 0, centerZ);
     }
-    private void SetCameraSize()
+    private void SpawnGridCell()
     {
-
+        ClearGrid();
+        transform.localRotation = Quaternion.Euler(Vector3.zero);
+        Vector3 gridCenter = CalculateGridCenter();
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Vector3 position = new Vector3(i, 0, j) - gridCenter;
+                GridCell obj = Instantiate(panelPrefab, position, Quaternion.identity, transform);
+                obj.name = $"Cell[{i},{j}]";
+                obj.transform.SetParent(transform);
+                obj.SetGridPosition(i, j);
+                cellList.Add(obj);
+            }
+        }
+        transform.localRotation = Quaternion.Euler(0f,180f, 0f);
     }
+    private void CheckNeibor()
+    {
+        for (int i = 0; i < cellList.Count; i++)
+        {
+            foreach(var cell in cellList)
+            {
+                cellList[i].CheckNeighbor(cell);
+            }
+        }
+    }
+    #endregion
+    #region EDIT GRID
     [TabGroup("EDIT GRID")]
 #if UNITY_EDITOR
     [ShowInInspector]
-    [TableMatrix(HorizontalTitle = "Custom Cell Drawing", DrawElementMethod = "DrawColoredEnumElement")]
+    [TableMatrix(HorizontalTitle = "Custom Cell Drawing", DrawElementMethod = "DrawColoredEnumElement", ResizableColumns = false, RowHeight = 16)]
     public bool[,] CustomCellDrawing;
     private static bool DrawColoredEnumElement(Rect rect, bool value)
     {
@@ -98,35 +98,51 @@ public class GridMap : MonoBehaviour
         UnityEditor.EditorGUI.DrawRect(rect.Padding(1), value ? new Color(0.1f, 0.8f, 0.2f) : new Color(0, 0, 0, 0.5f));
         return value;
     }
-
     [TabGroup("EDIT GRID")]
     [GUIColor(0.3f, 0.8f, 0.3f)]
-    [Button("EDIT GRID COMPLETE", ButtonSizes.Large)]
-    private void EditGridComplete()
+    [Button("CREATE GRID MATRIX", ButtonSizes.Large)]
+    private void CreateGridMatrix()
     {
-        for(int i = 0; i < width; i++)
+        CustomCellDrawing = new bool[width, height];
+        for (int x = 0; x < width; x++)
         {
-            for(int j = 0; j < height; j++)
+            for (int y = 0; y < height; y++)
             {
-
+                CustomCellDrawing[x, y] = true;
             }
         }
     }
 
-#endif
-}
-
-
-public class Cell
-{
-    public bool canFill;
-    public Vector3 cellPosition;
-    public Transform obj;
-
-    public Cell(bool isFill, Vector3 cellPosition,Transform obj)
+    [TabGroup("EDIT GRID")]
+    [GUIColor(0.3f, 0.8f, 0.3f)]
+    [Button("FORCE GRID", ButtonSizes.Large)]
+    private void GridComplete()
     {
-        this.canFill = isFill;
-        this.cellPosition = cellPosition;
-        this.obj = obj;
+        SpawnGridCell();
+        for(int i = 0; i < width; i++)
+        {
+            for(int j = 0; j < height; j++)
+            {
+                if(!CustomCellDrawing[i, j])
+                {
+                    foreach(var cell in cellList)
+                    {
+                        if(cell.gridPosX == i && cell.gridPosY == j)
+                        {
+                            DestroyImmediate(cell.gameObject);
+                            cellList.Remove(cell); 
+                            cellList.Remove(cell); 
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        CheckNeibor();
     }
+
+#endif
+    #endregion
 }
+
+
