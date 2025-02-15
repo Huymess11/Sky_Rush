@@ -4,7 +4,7 @@ using UnityEditor.Experimental.GraphView;
 using System.Collections.Generic;
 using Sirenix.Utilities;
 
-public class GridMap : MonoBehaviour
+public class GridLevelController : MonoBehaviour
 {
     [TabGroup("CREATE GRID")]
     [Title("Grid Settings",titleAlignment: TitleAlignments.Centered)]
@@ -13,7 +13,7 @@ public class GridMap : MonoBehaviour
     [TabGroup("CREATE GRID")]
     public int height = 5;
     [TabGroup("CREATE GRID")]
-    public GridCell panelPrefab; 
+    public GridCell panelPrefab;
 
    [HideInInspector]
     public List<GridCell> cellList;
@@ -63,20 +63,18 @@ public class GridMap : MonoBehaviour
                 GridCell obj = Instantiate(panelPrefab, position, Quaternion.identity, transform);
                 obj.name = $"Cell[{i},{j}]";
                 obj.transform.SetParent(transform);
-                obj.SetGridPosition(i, j);
+                obj.transform.localRotation = Quaternion.Euler(0f,0f,180f);
+                obj.SetGridPosition(i,j);
                 cellList.Add(obj);
             }
         }
-        transform.localRotation = Quaternion.Euler(0f,180f, 0f);
+        transform.localRotation = Quaternion.Euler(0f,180f, 180f);
     }
     private void CheckNeibor()
     {
         for (int i = 0; i < cellList.Count; i++)
         {
-            foreach(var cell in cellList)
-            {
-                cellList[i].CheckNeighbor(cell);
-            }
+                cellList[i].CheckNeighbor(cellList);
         }
     }
     #endregion

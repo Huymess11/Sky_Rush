@@ -12,7 +12,6 @@ public class MoveBlock : MonoBehaviour
     private Vector3 offsetMouseDownObject;
     private Outline outline;
     bool isDrag;
- //   [SerializeField] private GameObject snapObject;
 
     private void Start()
     {
@@ -47,7 +46,7 @@ public class MoveBlock : MonoBehaviour
     private void OnMouseUp()
     {
         transform.parent.position = new Vector3(transform.parent.position.x, 0, transform.parent.position.z);
-        transform.position = new Vector3(Mathf.RoundToInt(transform.position.x), transform.position.y, Mathf.RoundToInt(transform.position.z));
+        transform.position = new Vector3(Mathf.RoundToInt(transform.position.x) / transform.localScale.x, transform.position.y, Mathf.RoundToInt(transform.position.z) / transform.localScale.z);
         Destroy(rb);
         isDrag = false;
         transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
