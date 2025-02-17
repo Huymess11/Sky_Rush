@@ -262,9 +262,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 921cd3bcd8b745447b5c44f8c2ada732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
+  gridPosX: 0
+  gridPosY: 0
   isGate: 0
   gateDir: 0
   gateColor: 0
+  listGateColor: 
+  gateInfor: []
+  listQueueCustomerPosition: []
+  listCustomer: []
+  customerDistance: 0.4
+  customerPrefab: {fileID: 5310448090896264492, guid: 12eddfe09ce9e9444b7a30850acb895a, type: 3}
   T_Wall: {fileID: 5537396008256932136}
   B_Wall: {fileID: 3884873984588021889}
   R_Wall: {fileID: 5969492400169998865}
@@ -273,6 +290,10 @@ MonoBehaviour:
   B_Neighbor: 0
   R_Neighbor: 0
   L_Neighbor: 0
+  T_Neighbor_Index: 0
+  B_Neighbor_Index: 0
+  R_Neighbor_Index: 0
+  L_Neighbor_Index: 0
   T_Carpet: {fileID: 1323604364868789357}
   B_Carpet: {fileID: 6906358999979059021}
   R_Carpet: {fileID: 8046487273145141093}

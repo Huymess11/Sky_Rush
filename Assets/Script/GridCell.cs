@@ -1,15 +1,12 @@
 using Sirenix.OdinInspector;
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements.Experimental;
 
-public class GridCell : MonoBehaviour
+public class GridCell : SerializedMonoBehaviour
 {
-    public float gridPosX { get; private set; }
-    public float gridPosY { get; private set; }
+    [DisableInEditorMode] public float gridPosX;
+    [DisableInEditorMode] public float gridPosY;
 
     public bool isGate;
     [ShowIf("isGate", true)]
@@ -17,9 +14,19 @@ public class GridCell : MonoBehaviour
     [SerializeField] private GateDir gateDir;
     [ShowIf("isGate", true)]
     [TabGroup("GATE SETTING")]
-    [SerializeField] private GateColorType gateColor;
-    private List<GateColorType> listGateColor;
-
+    [SerializeField] private ColorType gateColor;
+    [DisableInEditorMode] public List<ColorType> listGateColor = new();
+    [ShowIf("isGate", true)]
+    [TabGroup("GATE SETTING")]
+    [SerializeField] private List<GateInfor> gateInfor = new();
+    [DisableInEditorMode] public List<Vector3> listQueueCustomerPosition = new();
+    [DisableInEditorMode] public List<Customer> listCustomer = new();
+    [ShowIf("isGate", true)]
+    [TabGroup("GATE SETTING")]
+    [SerializeField] private float customerDistance = 0.4f;
+    [ShowIf("isGate", true)]
+    [TabGroup("GATE SETTING")]
+    [SerializeField] private Customer customerPrefab;
 
     [FoldoutGroup("Wall")]
     public Collider T_Wall;
@@ -44,10 +51,10 @@ public class GridCell : MonoBehaviour
     [DisableInEditorMode]
     public bool L_Neighbor = false;
 
-    float T_Neighbor_Index;
-    float B_Neighbor_Index;
-    float R_Neighbor_Index;
-    float L_Neighbor_Index;
+    [SerializeField] private float T_Neighbor_Index;
+    [SerializeField] private float B_Neighbor_Index;
+    [SerializeField] private float R_Neighbor_Index;
+    [SerializeField] private float L_Neighbor_Index;
 
     [FoldoutGroup("Carpet")]
     [SerializeField] private MeshRenderer T_Carpet;
@@ -58,6 +65,13 @@ public class GridCell : MonoBehaviour
     [FoldoutGroup("Carpet")]
     [SerializeField] private MeshRenderer L_Carpet;
 
+    private void Start()
+    {
+        if (isGate)
+        {
+            SetGateColor(listCustomer[0].customerColor);
+        }
+    }
     public void SetGridPosition(float posX, float posY)
     {
         gridPosX = posX;
@@ -107,15 +121,15 @@ public class GridCell : MonoBehaviour
         L_Wall.gameObject.SetActive(!L_Neighbor);
     }
     #endregion
-
+    #region GATE
     [ShowIf("isGate", true)]
     [GUIColor(0.3f, 0.8f, 0.3f)]
     [TabGroup("GATE SETTING")]
-    [Button("SetGate", ButtonSizes.Medium)]
+    [Button("SetupGate", ButtonSizes.Medium)]
     public void SetGate()
     {
         SetGateDir();
-        SetGateColor(gateColor);
+        SpawnQueuePosition();
     }
     private void SetGateDir()
     {
@@ -124,7 +138,7 @@ public class GridCell : MonoBehaviour
         R_Carpet.gameObject.SetActive(gateDir == GateDir.RIGHT);
         L_Carpet.gameObject.SetActive(gateDir == GateDir.LEFT);
     }
-    private void SetGateColor(GateColorType type)
+    private void SetGateColor(ColorType type)
     {
         object[] loadedObjects = Resources.LoadAll("Materials");
         Material material;
@@ -140,9 +154,90 @@ public class GridCell : MonoBehaviour
                 break;
             }
         }
+        
     }
+    private void SpawnQueuePosition()
+    {
+        listQueueCustomerPosition = new();
+        int count = 0;
+        for(int i = 0; i < gateInfor.Count; i++)
+        {
+            count += gateInfor[i].quantity; 
+        }
+        for(int i = 0; i < count; i++)
+        {
+
+            switch (gateDir)
+            {
+                case GateDir.TOP:
+                    listQueueCustomerPosition.Add(T_Carpet.transform.position + new Vector3(0, 0, 1) * customerDistance * i);
+                    break;
+                case GateDir.BOTTOM:
+                    listQueueCustomerPosition.Add(B_Carpet.transform.position + new Vector3(0, 0, -1) * customerDistance * i);
+                    break;
+                case GateDir.LEFT:
+                    listQueueCustomerPosition.Add(L_Carpet.transform.position + new Vector3(-1, 0, 0) * customerDistance * i);
+                    break;
+                case GateDir.RIGHT:
+                    listQueueCustomerPosition.Add(R_Carpet.transform.position + new Vector3(1, 0, 0) * customerDistance * i);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+        SpawnCustomer();
+    }
+    private void SpawnCustomer()
+    {
+        DestroyAllCustomer();
+        listCustomer = new();
+        foreach (var position in listQueueCustomerPosition)
+        {
+           Customer customer=  Instantiate(customerPrefab, position, Quaternion.identity, transform);
+            customer.gameObject.transform.localPosition = new Vector3(customer.transform.localPosition.x, 0.5f, customer.transform.localPosition.z);
+            customer.gameObject.transform.localScale = Vector3.one*3f;
+            listCustomer.Add(customer);
+        }
+        AddListGateColor();
+    }
+    private void AddListGateColor()
+    {
+        listGateColor = new();
+        for(int i = 0; i < gateInfor.Count; i++)
+        {
+            for(int j = 0; j < gateInfor[i].quantity; j++)
+            {
+                listGateColor.Add(gateInfor[i].colorGate);
+            }
+        }
+        SetCustomColor();
+    }
+    private void SetCustomColor()
+    {
+        for(int i = 0; i < listCustomer.Count; i++)
+        {
+            listCustomer[i].SetCustomerColor(listGateColor[i]);
+        }
+    }
+    private void DestroyAllCustomer()
+    {
+        if(listCustomer != null)
+        {
+            foreach (var child in listCustomer)
+            {
+                if(child != null)
+                {
+                    DestroyImmediate(child.gameObject);
+                }
+            }
+            listCustomer.Clear();
+        }
+
+    }
+    #endregion
 }
-public enum GateColorType
+public enum ColorType
 {
    NONE = -1,
    DO,
@@ -159,4 +254,10 @@ public enum GateDir
     BOTTOM,
     RIGHT,
     LEFT
+}
+[Serializable]
+public class GateInfor
+{
+    public int quantity;
+    public ColorType colorGate;
 }

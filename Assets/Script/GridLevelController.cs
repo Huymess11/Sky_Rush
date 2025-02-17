@@ -1,10 +1,9 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
-using UnityEditor.Experimental.GraphView;
 using System.Collections.Generic;
 using Sirenix.Utilities;
 
-public class GridLevelController : MonoBehaviour
+public class GridLevelController : SerializedMonoBehaviour
 {
     [TabGroup("CREATE GRID")]
     [Title("Grid Settings",titleAlignment: TitleAlignments.Centered)]
