@@ -1,7 +1,10 @@
 using Sirenix.OdinInspector;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GridCell : SerializedMonoBehaviour
 {
@@ -15,11 +18,14 @@ public class GridCell : SerializedMonoBehaviour
     [ShowIf("isGate", true)]
     [TabGroup("GATE SETTING")]
     [SerializeField] private ColorType gateColor;
+    [FoldoutGroup("List")]
     [DisableInEditorMode] public List<ColorType> listGateColor = new();
     [ShowIf("isGate", true)]
     [TabGroup("GATE SETTING")]
     [SerializeField] private List<GateInfor> gateInfor = new();
+    [FoldoutGroup("List")]
     [DisableInEditorMode] public List<Vector3> listQueueCustomerPosition = new();
+    [FoldoutGroup("List")]
     [DisableInEditorMode] public List<Customer> listCustomer = new();
     [ShowIf("isGate", true)]
     [TabGroup("GATE SETTING")]
@@ -51,9 +57,17 @@ public class GridCell : SerializedMonoBehaviour
     [DisableInEditorMode]
     public bool L_Neighbor = false;
 
+    [FoldoutGroup("Neighbor")]
+    [DisableInEditorMode]
     [SerializeField] private float T_Neighbor_Index;
+    [FoldoutGroup("Neighbor")]
+    [DisableInEditorMode]
     [SerializeField] private float B_Neighbor_Index;
+    [FoldoutGroup("Neighbor")]
+    [DisableInEditorMode]
     [SerializeField] private float R_Neighbor_Index;
+    [FoldoutGroup("Neighbor")]
+    [DisableInEditorMode]
     [SerializeField] private float L_Neighbor_Index;
 
     [FoldoutGroup("Carpet")]
@@ -65,12 +79,55 @@ public class GridCell : SerializedMonoBehaviour
     [FoldoutGroup("Carpet")]
     [SerializeField] private MeshRenderer L_Carpet;
 
+    [SerializeField] private float rayDistance;
+    private LayerMask mask;
+    Ray ray;
+    RaycastHit hit;
+    Block block;
+
     private void Start()
     {
         if (isGate)
         {
             SetGateColor(listCustomer[0].customerColor);
+            mask = LayerMask.GetMask("Car");
         }
+    }
+    private void Update()
+    {
+        if (!isGate) return;
+        if (listCustomer == null) return;
+        ray = new Ray(transform.position, transform.up);
+
+        if (Physics.Raycast(ray, out hit, rayDistance, mask))
+        {
+            block = hit.collider.gameObject.GetComponent<Block>();
+            if (block.blockColor == listCustomer[0].customerColor)
+            {
+                StartCoroutine(TransportCoroutine(1f));
+            }
+            else
+            {
+                Debug.Log("Sai le");
+            }
+        }
+        DrawRaycast();
+    }
+    private IEnumerator TransportCoroutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (listCustomer.Count > 0 && block.listSittingTransform.Count > 0)
+        {
+            listCustomer[0].JumpInBlock(block.listSittingTransform[0]);
+            block.listSittingTransform.RemoveAt(0);
+            listCustomer.RemoveAt(0);
+        }
+    }
+    private void DrawRaycast()
+    {
+        Color rayColor = Physics.Raycast(ray, rayDistance, mask) ? Color.red : Color.green;
+        Debug.DrawRay(ray.origin, ray.direction * rayDistance, rayColor);
     }
     public void SetGridPosition(float posX, float posY)
     {
@@ -197,6 +254,7 @@ public class GridCell : SerializedMonoBehaviour
            Customer customer=  Instantiate(customerPrefab, position, Quaternion.identity, transform);
             customer.gameObject.transform.localPosition = new Vector3(customer.transform.localPosition.x, 0.5f, customer.transform.localPosition.z);
             customer.gameObject.transform.localScale = Vector3.one*3f;
+            customer.transform.forward = -transform.position;
             listCustomer.Add(customer);
         }
         AddListGateColor();

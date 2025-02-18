@@ -1,20 +1,25 @@
 
+using System.Collections.Generic;
 using UnityEngine;
+using static Unity.Collections.AllocatorManager;
 
 public class MoveBlock : MonoBehaviour
 {
     public float moveSpeed = 20f;
+    [SerializeField] Block block;
     private Vector3 mousePosition;
     private Plane plane;
     private Rigidbody rb;
     private Vector3 offsetMouseDownObject;
     private Outline outline;
     bool isDrag;
+    public GameObject child;
+
 
     private void Start()
     {
         plane = new Plane(Vector3.up, Vector3.zero);
-        outline = GetComponent<Outline>();
+        outline = GetComponentInChildren<Outline>();
     }
     private void OnMouseDown()
     {
@@ -36,18 +41,30 @@ public class MoveBlock : MonoBehaviour
         if (plane.Raycast(ray, out var enter))
         {
             mousePosition = ray.GetPoint(enter);
-            transform.parent.position = new Vector3(transform.parent.position.x, 0.25f, transform.parent.position.z);
-            rb.velocity = (mousePosition + offsetMouseDownObject - transform.position) * moveSpeed ;
+            transform.position = new Vector3(transform.position.x, 0.15f, transform.position.z);
+            Vector3 targetPos = mousePosition + offsetMouseDownObject;
+
+            switch (block.blockType)
+            {
+                case BlockType.HORIZONTAL:
+                    targetPos.z = transform.position.z;
+                    break;
+                case BlockType.VERTICAL:
+                    targetPos.x = transform.position.x;
+                    break;
+                case BlockType.ICE:
+                    break;
+            }
+            rb.velocity = (targetPos-transform.position) * moveSpeed;
             rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
         }
     }
     private void OnMouseUp()
     {
-        transform.parent.position = new Vector3(transform.parent.position.x, 0, transform.parent.position.z);
-        transform.position = new Vector3(Mathf.RoundToInt(transform.position.x) / transform.localScale.x, transform.position.y, Mathf.RoundToInt(transform.position.z) / transform.localScale.z);
+        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+        //transform.position = new Vector3(Mathf.RoundToInt(transform.position.x) / transform.localScale.x, transform.position.y, Mathf.RoundToInt(transform.position.z) / transform.localScale.z);
         Destroy(rb);
         isDrag = false;
-        transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
         rb.constraints = RigidbodyConstraints.FreezeAll;
         rb.velocity = Vector3.zero;
         outline.enabled = false;

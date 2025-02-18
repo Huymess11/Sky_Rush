@@ -1,12 +1,14 @@
 using Sirenix.OdinInspector;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
+using Unity.VisualScripting.Antlr3.Runtime.Collections;
 
 public class Customer : MonoBehaviour
 {
     [DisableInEditorMode] public ColorType customerColor;
     [SerializeField] private MeshRenderer mr;
+    public bool transportComplete;
     public void SetCustomerColor(ColorType type)
     {
         object[] loadedObjects = Resources.LoadAll("Materials");
@@ -21,5 +23,16 @@ public class Customer : MonoBehaviour
             }
         }
         customerColor = type;
+    }
+    public void JumpInBlock(Transform trans)
+    {
+        Vector3 centerPos = (transform.position + trans.position) / 2 + Vector3.up * 1.5f;
+        Vector3[] path = new Vector3[] {centerPos, trans.position };
+        transform.DOPath(path, 0.5f, PathType.CatmullRom)
+            .OnComplete(() =>
+            {
+                transform.SetParent(trans);
+                transform.localPosition =  Vector3.zero;
+            });
     }
 }

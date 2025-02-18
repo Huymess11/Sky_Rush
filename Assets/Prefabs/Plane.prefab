@@ -298,6 +298,7 @@ MonoBehaviour:
   B_Carpet: {fileID: 6906358999979059021}
   R_Carpet: {fileID: 8046487273145141093}
   L_Carpet: {fileID: 5188131424815715813}
+  rayDistance: 0.5
 --- !u!1 &3248587891754781070
 GameObject:
   m_ObjectHideFlags: 0
