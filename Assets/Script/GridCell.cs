@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Burst.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +11,7 @@ public class GridCell : SerializedMonoBehaviour
     [DisableInEditorMode] public float gridPosX;
     [DisableInEditorMode] public float gridPosY;
 
+    [OnValueChanged("ResetGrid")]
     public bool isGate;
     [ShowIf("isGate", true)]
     [TabGroup("GATE SETTING")]
@@ -19,7 +20,7 @@ public class GridCell : SerializedMonoBehaviour
     [TabGroup("GATE SETTING")]
     [SerializeField] private ColorType gateColor;
     [FoldoutGroup("List")]
-    [DisableInEditorMode] public List<ColorType> listGateColor = new();
+    public List<ColorType> listGateColor = new();
     [ShowIf("isGate", true)]
     [TabGroup("GATE SETTING")]
     [SerializeField] private List<GateInfor> gateInfor = new();
@@ -79,56 +80,28 @@ public class GridCell : SerializedMonoBehaviour
     [FoldoutGroup("Carpet")]
     [SerializeField] private MeshRenderer L_Carpet;
 
-    [SerializeField] private float rayDistance;
     private LayerMask mask;
-    Ray ray;
-    RaycastHit hit;
+    BoxCollider collider;
     Block block;
+    bool isOnBlock;
+    private Coroutine transportCoroutine;
 
+    private void Awake()
+    {
+        collider = GetComponent<BoxCollider>();
+    }
     private void Start()
     {
+
         if (isGate)
         {
+            collider.enabled = true;
             SetGateColor(listCustomer[0].customerColor);
             mask = LayerMask.GetMask("Car");
         }
     }
-    private void Update()
-    {
-        if (!isGate) return;
-        if (listCustomer == null) return;
-        ray = new Ray(transform.position, transform.up);
 
-        if (Physics.Raycast(ray, out hit, rayDistance, mask))
-        {
-            block = hit.collider.gameObject.GetComponent<Block>();
-            if (block.blockColor == listCustomer[0].customerColor)
-            {
-                StartCoroutine(TransportCoroutine(1f));
-            }
-            else
-            {
-                Debug.Log("Sai le");
-            }
-        }
-        DrawRaycast();
-    }
-    private IEnumerator TransportCoroutine(float delay)
-    {
-        yield return new WaitForSeconds(delay);
 
-        if (listCustomer.Count > 0 && block.listSittingTransform.Count > 0)
-        {
-            listCustomer[0].JumpInBlock(block.listSittingTransform[0]);
-            block.listSittingTransform.RemoveAt(0);
-            listCustomer.RemoveAt(0);
-        }
-    }
-    private void DrawRaycast()
-    {
-        Color rayColor = Physics.Raycast(ray, rayDistance, mask) ? Color.red : Color.green;
-        Debug.DrawRay(ray.origin, ray.direction * rayDistance, rayColor);
-    }
     public void SetGridPosition(float posX, float posY)
     {
         gridPosX = posX;
@@ -148,7 +121,7 @@ public class GridCell : SerializedMonoBehaviour
     {
         foreach (var cell in allCells)
         {
-            if (cell == this) continue; 
+            if (cell == this) continue;
 
             if (cell.gridPosX == gridPosX && cell.gridPosY == T_Neighbor_Index)
             {
@@ -211,17 +184,17 @@ public class GridCell : SerializedMonoBehaviour
                 break;
             }
         }
-        
+
     }
     private void SpawnQueuePosition()
     {
         listQueueCustomerPosition = new();
         int count = 0;
-        for(int i = 0; i < gateInfor.Count; i++)
+        for (int i = 0; i < gateInfor.Count; i++)
         {
-            count += gateInfor[i].quantity; 
+            count += gateInfor[i].quantity;
         }
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
 
             switch (gateDir)
@@ -251,9 +224,9 @@ public class GridCell : SerializedMonoBehaviour
         listCustomer = new();
         foreach (var position in listQueueCustomerPosition)
         {
-           Customer customer=  Instantiate(customerPrefab, position, Quaternion.identity, transform);
+            Customer customer = Instantiate(customerPrefab, position, Quaternion.identity, transform);
             customer.gameObject.transform.localPosition = new Vector3(customer.transform.localPosition.x, 0.5f, customer.transform.localPosition.z);
-            customer.gameObject.transform.localScale = Vector3.one*3f;
+            customer.gameObject.transform.localScale = Vector3.one * 3f;
             customer.transform.forward = -transform.position;
             listCustomer.Add(customer);
         }
@@ -262,29 +235,32 @@ public class GridCell : SerializedMonoBehaviour
     private void AddListGateColor()
     {
         listGateColor = new();
-        for(int i = 0; i < gateInfor.Count; i++)
+        for (int i = 0; i < gateInfor.Count; i++)
         {
-            for(int j = 0; j < gateInfor[i].quantity; j++)
+            for (int j = 0; j < gateInfor[i].quantity; j++)
             {
                 listGateColor.Add(gateInfor[i].colorGate);
             }
         }
         SetCustomColor();
     }
+    [FoldoutGroup("List")]
+    [GUIColor(0.3f, 0.8f, 0.3f)]
+    [Button("Init Color")]
     private void SetCustomColor()
     {
-        for(int i = 0; i < listCustomer.Count; i++)
+        for (int i = 0; i < listCustomer.Count; i++)
         {
             listCustomer[i].SetCustomerColor(listGateColor[i]);
         }
     }
     private void DestroyAllCustomer()
     {
-        if(listCustomer != null)
+        if (listCustomer != null)
         {
             foreach (var child in listCustomer)
             {
-                if(child != null)
+                if (child != null)
                 {
                     DestroyImmediate(child.gameObject);
                 }
@@ -294,16 +270,71 @@ public class GridCell : SerializedMonoBehaviour
 
     }
     #endregion
+    private void ResetGrid()
+    {
+        gateDir = GateDir.NONE;
+        SetGateDir();
+        DestroyAllCustomer();
+        listCustomer.Clear();
+        listQueueCustomerPosition.Clear();
+        listGateColor.Clear();
+        gateInfor.Clear();
+    }
+    private IEnumerator TransportCoroutine()
+    {
+        if (listCustomer.Count == 0 || block.listSittingTransform.Count == 0)
+        {
+            yield break; 
+        }
+
+        if (block.blockColor == listCustomer[0].customerColor)
+        {
+            if (listCustomer.Count > 0 && block.listSittingTransform.Count > 0)
+            {
+                listCustomer[0].JumpInBlock(block.listSittingTransform[0]);
+                block.listSittingTransform.RemoveAt(0);
+                listCustomer.RemoveAt(0);
+                for(int i = 0; i < listCustomer.Count; i++)
+                {
+                    listCustomer[i].MoveQueue(listQueueCustomerPosition[i]);
+                }
+                block.CheckDeparture();
+            }
+            yield return new WaitForSeconds(0.05f);
+            transportCoroutine = StartCoroutine(TransportCoroutine());
+        }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!isGate || listCustomer.Count == 0) return;
+        if ((mask.value & (1 << other.gameObject.layer)) > 0)
+        {
+            block = other.gameObject.GetComponent<Block>();
+
+            transportCoroutine = StartCoroutine(TransportCoroutine());
+
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if ((mask.value & (1 << other.gameObject.layer)) > 0)
+        {
+            if (transportCoroutine != null)
+            {
+                StopCoroutine(transportCoroutine);
+            }
+        }
+    }
 }
 public enum ColorType
 {
-   NONE = -1,
-   DO,
-   CAM,
-   VANG,
-   XANH,
-   TIM,
-   HONG
+    NONE = -1,
+    DO,
+    CAM,
+    VANG,
+    XANH,
+    TIM,
+    HONG
 }
 public enum GateDir
 {

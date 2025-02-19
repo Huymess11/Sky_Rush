@@ -152,8 +152,8 @@ GameObject:
   - component: {fileID: 3731847545754945332}
   - component: {fileID: 1351212037747209695}
   - component: {fileID: 1509675876695493947}
-  - component: {fileID: 430575895032210067}
   - component: {fileID: 6352576937874643841}
+  - component: {fileID: -6722476328105890311}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -228,28 +228,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &430575895032210067
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2811861924883874987}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &6352576937874643841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -298,7 +276,27 @@ MonoBehaviour:
   B_Carpet: {fileID: 6906358999979059021}
   R_Carpet: {fileID: 8046487273145141093}
   L_Carpet: {fileID: 5188131424815715813}
-  rayDistance: 0.5
+--- !u!65 &-6722476328105890311
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2811861924883874987}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 2.5, y: 6, z: 2.5}
+  m_Center: {x: 0, y: 3, z: 0}
 --- !u!1 &3248587891754781070
 GameObject:
   m_ObjectHideFlags: 0

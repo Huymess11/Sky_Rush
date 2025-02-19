@@ -27,12 +27,18 @@ public class Customer : MonoBehaviour
     public void JumpInBlock(Transform trans)
     {
         Vector3 centerPos = (transform.position + trans.position) / 2 + Vector3.up * 1.5f;
+        centerPos.y += 0.5f;
         Vector3[] path = new Vector3[] {centerPos, trans.position };
-        transform.DOPath(path, 0.5f, PathType.CatmullRom)
+        transform.DOPath(path, 0.1f, PathType.CatmullRom)
             .OnComplete(() =>
             {
                 transform.SetParent(trans);
                 transform.localPosition =  Vector3.zero;
             });
+    }
+
+    public void MoveQueue(Vector3 pos)
+    {
+        transform.DOMove(pos, 0.05f);
     }
 }
