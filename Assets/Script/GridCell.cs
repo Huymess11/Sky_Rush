@@ -80,6 +80,19 @@ public class GridCell : SerializedMonoBehaviour
     [FoldoutGroup("Carpet")]
     [SerializeField] private MeshRenderer L_Carpet;
 
+    [SerializeField] private GridLevelController gridLevelController;
+    public GridLevelController _gridLevelController
+    {
+        get
+        {
+            return gridLevelController;
+        }
+        set
+        {
+            gridLevelController = value;
+        }
+    }
+
     private LayerMask mask;
     BoxCollider collider;
     Block block;
@@ -90,13 +103,21 @@ public class GridCell : SerializedMonoBehaviour
     {
         collider = GetComponent<BoxCollider>();
     }
+    private void OnEnable()
+    {
+        ObserverManager.OnReviewGate += ReviewListCusomer;
+    }
+    private void OnDisable()
+    {
+        ObserverManager.OnReviewGate -= ReviewListCusomer;
+    }
     private void Start()
     {
 
         if (isGate)
         {
             collider.enabled = true;
-            SetGateColor(listCustomer[0].customerColor);
+            SetGateColor();
             mask = LayerMask.GetMask("Car");
         }
     }
@@ -168,8 +189,16 @@ public class GridCell : SerializedMonoBehaviour
         R_Carpet.gameObject.SetActive(gateDir == GateDir.RIGHT);
         L_Carpet.gameObject.SetActive(gateDir == GateDir.LEFT);
     }
-    private void SetGateColor(ColorType type)
+    private void SetGateColor()
     {
+
+        if(listCustomer.Count <= 0)
+        {
+            gateDir = GateDir.NONE;
+            SetGateDir();
+            return;
+        }
+        ColorType type = listCustomer[0].customerColor;
         object[] loadedObjects = Resources.LoadAll("Materials");
         Material material;
         foreach (var obj in loadedObjects)
@@ -194,28 +223,62 @@ public class GridCell : SerializedMonoBehaviour
         {
             count += gateInfor[i].quantity;
         }
-        for (int i = 0; i < count; i++)
+        float offset = 0.25f;
+        Vector3 startPosition = Vector3.zero;
+        Vector3 moveDir = Vector3.zero;
+        Vector3 sideDir = Vector3.zero;
+        int randomX = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
+        int randomZ = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
+        switch (gateDir)
         {
+            case GateDir.TOP:
+                startPosition = T_Carpet.transform.position;
+                startPosition.z += offset;
+                moveDir = new Vector3(0, 0, 1);
+                sideDir = new Vector3(randomX, 0, 0); 
+                break;
+            case GateDir.BOTTOM:
+                startPosition = B_Carpet.transform.position;
+                startPosition.z -= offset;
+                moveDir = new Vector3(0, 0, -1);
+                sideDir = new Vector3(randomX, 0, 0);
+                break;
+            case GateDir.LEFT:
 
-            switch (gateDir)
+                startPosition = L_Carpet.transform.position;
+                startPosition.x -= offset;
+                moveDir = new Vector3(-1, 0, 0); 
+                sideDir = new Vector3(0, 0, randomZ);  
+                break;
+            case GateDir.RIGHT:
+                startPosition = R_Carpet.transform.position;
+                startPosition.x += offset;
+                moveDir = new Vector3(1, 0, 0);
+                sideDir = new Vector3(0, 0, randomZ);
+                break;
+        }
+
+        Vector3 currentPosition = startPosition;
+        int step = 0;
+
+        while (step < count)
+        {
+            int forwardSteps = UnityEngine.Random.Range(2, 6);
+            for (int i = 0; i < forwardSteps && step < count; i++, step++)
             {
-                case GateDir.TOP:
-                    listQueueCustomerPosition.Add(T_Carpet.transform.position + new Vector3(0, 0, 1) * customerDistance * i);
-                    break;
-                case GateDir.BOTTOM:
-                    listQueueCustomerPosition.Add(B_Carpet.transform.position + new Vector3(0, 0, -1) * customerDistance * i);
-                    break;
-                case GateDir.LEFT:
-                    listQueueCustomerPosition.Add(L_Carpet.transform.position + new Vector3(-1, 0, 0) * customerDistance * i);
-                    break;
-                case GateDir.RIGHT:
-                    listQueueCustomerPosition.Add(R_Carpet.transform.position + new Vector3(1, 0, 0) * customerDistance * i);
-                    break;
-                default:
-                    break;
+                listQueueCustomerPosition.Add(currentPosition);
+                currentPosition += moveDir * customerDistance;
             }
 
+            if (step >= count) break;
+            int sideSteps = UnityEngine.Random.Range(2, 4);
+            for (int i = 0; i < sideSteps && step < count; i++, step++)
+            {
+                listQueueCustomerPosition.Add(currentPosition);
+                currentPosition += sideDir * customerDistance;
+            }
         }
+
         SpawnCustomer();
     }
     private void SpawnCustomer()
@@ -229,6 +292,7 @@ public class GridCell : SerializedMonoBehaviour
             customer.gameObject.transform.localScale = Vector3.one * 3f;
             customer.transform.forward = -transform.position;
             listCustomer.Add(customer);
+            _gridLevelController._levelManager.listAllCustomer.Add(customer);  
         }
         AddListGateColor();
     }
@@ -266,7 +330,22 @@ public class GridCell : SerializedMonoBehaviour
                 }
             }
             listCustomer.Clear();
+            _gridLevelController._levelManager.ReviewList();
         }
+
+    }
+    public void ReviewListCusomer()
+    {
+        if (!isGate) return; 
+        if (listCustomer.Count > 0)
+        {
+            listCustomer.RemoveAll(item => item == null);
+        }
+        for (int i = 0; i < listCustomer.Count; i++)
+        {
+            listCustomer[i].MoveQueue(listQueueCustomerPosition[i]);
+        }
+        SetGateColor();
 
     }
     #endregion
@@ -298,9 +377,10 @@ public class GridCell : SerializedMonoBehaviour
                 {
                     listCustomer[i].MoveQueue(listQueueCustomerPosition[i]);
                 }
+                SetGateColor();
                 block.CheckDeparture();
             }
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(0.15f);
             transportCoroutine = StartCoroutine(TransportCoroutine());
         }
     }
@@ -321,6 +401,7 @@ public class GridCell : SerializedMonoBehaviour
         {
             if (transportCoroutine != null)
             {
+                Debug.Log("Ok");
                 StopCoroutine(transportCoroutine);
             }
         }

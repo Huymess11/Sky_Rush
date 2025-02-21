@@ -32,6 +32,7 @@ public class Customer : MonoBehaviour
         transform.DOPath(path, 0.1f, PathType.CatmullRom)
             .OnComplete(() =>
             {
+                LevelManager.Instance.CheckWin(this);
                 transform.SetParent(trans);
                 transform.localPosition =  Vector3.zero;
             });

@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using Sirenix.Utilities;
 
-public class GridLevelController : SerializedMonoBehaviour
+public class GridLevelController : MonoBehaviour
 {
     [TabGroup("CREATE GRID")]
     [Title("Grid Settings",titleAlignment: TitleAlignments.Centered)]
@@ -16,6 +16,12 @@ public class GridLevelController : SerializedMonoBehaviour
 
    [HideInInspector]
     public List<GridCell> cellList;
+
+    [SerializeField] private LevelManager levelManager;
+    public LevelManager _levelManager
+    {
+        get { return levelManager; }
+    }
 
     #region CREATE GRID
     [TabGroup("CREATE GRID")]
@@ -41,12 +47,13 @@ public class GridLevelController : SerializedMonoBehaviour
                 }
             }
             cellList.Clear();
+            levelManager.ReviewList();
         }
     }
     private Vector3 CalculateGridCenter()
     {
-        float centerX = (width - 1) * 0.5f;
-        float centerZ = (height - 1) * 0.5f;
+        float centerX = (width % 2 == 0) ? width * 0.5f : (width - 1) * 0.5f;
+        float centerZ = (height % 2 == 0) ? height * 0.5f : (height - 1) * 0.5f;
         return new Vector3(centerX, 0, centerZ);
     }
     private void SpawnGridCell()
@@ -64,6 +71,7 @@ public class GridLevelController : SerializedMonoBehaviour
                 obj.transform.SetParent(transform);
                 obj.transform.localRotation = Quaternion.Euler(0f,0f,180f);
                 obj.SetGridPosition(i,j);
+                obj._gridLevelController = this;
                 cellList.Add(obj);
             }
         }
@@ -78,8 +86,8 @@ public class GridLevelController : SerializedMonoBehaviour
     }
     #endregion
     #region EDIT GRID
-    [TabGroup("EDIT GRID")]
 #if UNITY_EDITOR
+    [TabGroup("EDIT GRID")]
     [ShowInInspector]
     [TableMatrix(HorizontalTitle = "Custom Cell Drawing", DrawElementMethod = "DrawColoredEnumElement", ResizableColumns = false, RowHeight = 16)]
     public bool[,] CustomCellDrawing;

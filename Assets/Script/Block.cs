@@ -18,7 +18,12 @@ public class Block : MonoBehaviour
     [ShowIf("blockType",BlockType.ICE)]
     [TabGroup("ICE TYPE")]
     public int stepUnlock;
+    private Outline outline;
 
+    private void Awake()
+    {
+        outline = GetComponentInChildren<Outline>();
+    }
     private void OnEnable()
     {
         ObserverManager.OnDefrost += ReduceStep;
@@ -32,6 +37,11 @@ public class Block : MonoBehaviour
         stepUnlockText.gameObject.SetActive(blockType == BlockType.ICE);
         SetTextUnlockBlock(stepUnlock);
         collider  = GetComponent<Collider>();
+    }
+    [Button("Rotate Block")]
+    public void Rotate()
+    {
+        transform.localEulerAngles += new Vector3(0, 90, 0);
     }
     [Button("SetUpBlock")] 
     private void SetUp()
@@ -68,10 +78,10 @@ public class Block : MonoBehaviour
     {
         if(listSittingTransform.Count == 0)
         {
+            outline.enabled = false;
             collider.enabled = false;
             isFull = true;
             ObserverManager.Defrost();
-            BlockManager.Instance.CheckWin();
             Departure();
         }
     }

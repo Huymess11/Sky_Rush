@@ -1,4 +1,5 @@
 
+using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 using static Unity.Collections.AllocatorManager;
@@ -16,12 +17,21 @@ public class MoveBlock : MonoBehaviour
     public GameObject child;
     Bounds bounds;
     Collider blockCollider;
+    bool isHintDestroy; 
 
     private void Awake()
     {
         blockCollider = GetComponent<Collider>();
         bounds = blockCollider.bounds;
         outline = GetComponentInChildren<Outline>();
+    }
+    private void OnEnable()
+    {
+        ObserverManager.OnHintDestroy += SetIsHintDestroy;
+    }
+    private void OnDisable()
+    {
+        ObserverManager.OnHintDestroy -= SetIsHintDestroy;
     }
 
     private void Start()
@@ -30,17 +40,31 @@ public class MoveBlock : MonoBehaviour
     }
     private void OnMouseDown()
     {
+        TimeManager.Instance.StartTimer();
         if (block.blockType == BlockType.ICE) return;
-        isDrag = true;
-        rb = gameObject.AddComponent<Rigidbody>();
-        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (plane.Raycast(ray, out var enter))
-        {
-            mousePosition = ray.GetPoint(enter);
-            offsetMouseDownObject = transform.position - mousePosition;
+        if (isHintDestroy)
+        { 
+            LevelManager.Instance.DestroyCustomer(block.listSittingTransform.Count, block.blockColor);
+            ObserverManager.HintDestroy(false);
+            ObserverManager.Defrost();
+            Destroy(gameObject);
         }
-        outline.enabled = true;
+        else
+        {
+            isDrag = true;
+            if(rb == null)
+            {
+                rb = gameObject.AddComponent<Rigidbody>();
+                rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+            }
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (plane.Raycast(ray, out var enter))
+            {
+                mousePosition = ray.GetPoint(enter);
+                offsetMouseDownObject = transform.position - mousePosition;
+            }
+            outline.enabled = true;
+        }
     }
     private void FixedUpdate()
     {
@@ -75,7 +99,7 @@ public class MoveBlock : MonoBehaviour
         {
             rb.velocity = Vector3.zero;
             rb.constraints = RigidbodyConstraints.FreezeAll;
-            Destroy(rb);
+            Destroy(rb,0.1f);
         }
         
         float halfWidth = bounds.size.x / 2f;
@@ -83,7 +107,13 @@ public class MoveBlock : MonoBehaviour
         float snappedX = Mathf.Round((transform.position.x - halfWidth)) + halfWidth;
         float snappedZ = Mathf.Round((transform.position.z - halfHeight)) + halfHeight;
 
-        transform.position = new Vector3(snappedX, 0, snappedZ);
+        Vector3 posMove = new Vector3(snappedX, 0, snappedZ);
+        transform.DOMove(posMove, 0.05f);
         outline.enabled =  false;
+    }
+    public void SetIsHintDestroy(bool status)
+    {
+        outline.enabled = status;
+        isHintDestroy = status;
     }
 }

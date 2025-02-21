@@ -2,7 +2,6 @@ using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.Build.Pipeline;
 using UnityEngine;
 
 public class BlockManager : MonoBehaviour
@@ -44,16 +43,24 @@ public class BlockManager : MonoBehaviour
         }
         listBlock.Clear();
     }
-
-    public void CheckWin()
+    public void ReviewList()
     {
-        foreach (var child in listBlock)
+        if (listBlock.Count > 0)
         {
-            if (!child.isFull)
-            {
-                return;
-            }
+            listBlock.RemoveAll(item => item == null);
         }
-        LevelManager.Instance.Victory();
     }
+
+    //public void CheckWin()
+    //{
+    //    ReviewList();
+    //    foreach (var child in listBlock)
+    //    {
+    //        if (!child.isFull)
+    //        {
+    //            return;
+    //        }
+    //    }
+    //    LevelManager.Instance.Victory();
+    //}
 }

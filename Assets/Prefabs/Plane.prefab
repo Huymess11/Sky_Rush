@@ -276,6 +276,7 @@ MonoBehaviour:
   B_Carpet: {fileID: 6906358999979059021}
   R_Carpet: {fileID: 8046487273145141093}
   L_Carpet: {fileID: 5188131424815715813}
+  gridLevelController: {fileID: 0}
 --- !u!65 &-6722476328105890311
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -323,7 +324,7 @@ Transform:
   m_GameObject: {fileID: 3248587891754781070}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 0, z: -4.744}
+  m_LocalPosition: {x: 6, y: 0, z: -4.744}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -411,7 +412,7 @@ Transform:
   m_GameObject: {fileID: 4085319271212531593}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: 0, z: -4.744}
+  m_LocalPosition: {x: -6, y: 0, z: -4.744}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -464,7 +465,7 @@ Transform:
   m_GameObject: {fileID: 4263337783274709677}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 5.11}
+  m_LocalPosition: {x: 0, y: 0, z: 6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -729,7 +730,7 @@ Transform:
   m_GameObject: {fileID: 7978736431237905598}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5.11}
+  m_LocalPosition: {x: 0, y: 0, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

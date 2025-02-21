@@ -16,6 +16,9 @@ public class BlockInfor
 }
 public enum BlockShapeType
 {
-    FOUR_SIT,
-    SIXTEEN_SIT
+    _1X1,
+    _1X2,
+    _1X3,
+    _1X4,
+    _2X2
 }

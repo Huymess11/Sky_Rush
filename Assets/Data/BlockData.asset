@@ -16,4 +16,10 @@ MonoBehaviour:
   - type: 0
     blockPrefab: {fileID: 4615630770966209699, guid: 260059898825c9b46a9b3ed51081cbea, type: 3}
   - type: 1
+    blockPrefab: {fileID: 4615630770966209699, guid: b54eeb280b2a9da44a7c68bbc00d7fbe, type: 3}
+  - type: 2
+    blockPrefab: {fileID: 4615630770966209699, guid: 684dca181dc4aa24e94b92c9d0864fdf, type: 3}
+  - type: 3
     blockPrefab: {fileID: 6209372189955877214, guid: 3668650a9c26bca46bd579b68b5a5d8d, type: 3}
+  - type: 4
+    blockPrefab: {fileID: 4615630770966209699, guid: 189b393915d0bd444a98d9e2307c839c, type: 3}

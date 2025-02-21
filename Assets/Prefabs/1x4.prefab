@@ -724,7 +724,7 @@ GameObject:
   - component: {fileID: 8675654277468407252}
   - component: {fileID: 1953206977382010420}
   m_Layer: 3
-  m_Name: 16 sit
+  m_Name: 1x4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -817,6 +817,7 @@ MonoBehaviour:
   blockType: 0
   mr: {fileID: 7901700628952389884}
   stepUnlockText: {fileID: 8561362327897037276}
+  isFull: 0
   stepUnlock: 0
 --- !u!114 &1953206977382010420
 MonoBehaviour:
