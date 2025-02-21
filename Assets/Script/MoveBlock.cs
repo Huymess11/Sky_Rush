@@ -17,7 +17,7 @@ public class MoveBlock : MonoBehaviour
     public GameObject child;
     Bounds bounds;
     Collider blockCollider;
-    bool isHintDestroy; 
+    bool isHintDestroy;
 
     private void Awake()
     {
@@ -43,7 +43,7 @@ public class MoveBlock : MonoBehaviour
         TimeManager.Instance.StartTimer();
         if (block.blockType == BlockType.ICE) return;
         if (isHintDestroy)
-        { 
+        {
             LevelManager.Instance.DestroyCustomer(block.listSittingTransform.Count, block.blockColor);
             ObserverManager.HintDestroy(false);
             ObserverManager.Defrost();
@@ -52,11 +52,6 @@ public class MoveBlock : MonoBehaviour
         else
         {
             isDrag = true;
-            if(rb == null)
-            {
-                rb = gameObject.AddComponent<Rigidbody>();
-                rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-            }
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (plane.Raycast(ray, out var enter))
             {
@@ -69,11 +64,16 @@ public class MoveBlock : MonoBehaviour
     private void FixedUpdate()
     {
         if (!isDrag) return;
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        }
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (plane.Raycast(ray, out var enter))
         {
             mousePosition = ray.GetPoint(enter);
-           
+
             Vector3 targetPos = mousePosition + offsetMouseDownObject;
 
             switch (block.blockType)
@@ -88,28 +88,30 @@ public class MoveBlock : MonoBehaviour
                     break;
             }
             transform.position = new Vector3(transform.position.x, 0.15f, transform.position.z);
-            rb.velocity = (targetPos-transform.position) * moveSpeed;
-            rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+            if (rb != null)
+            {
+                rb.velocity = (targetPos - transform.position) * moveSpeed;
+                rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+            }
+
         }
     }
     private void OnMouseUp()
     {
         isDrag = false;
-        if (rb != null)
-        {
-            rb.velocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.FreezeAll;
-            Destroy(rb,0.1f);
-        }
-        
+        rb.velocity = Vector3.zero;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
         float halfWidth = bounds.size.x / 2f;
         float halfHeight = bounds.size.z / 2f;
         float snappedX = Mathf.Round((transform.position.x - halfWidth)) + halfWidth;
         float snappedZ = Mathf.Round((transform.position.z - halfHeight)) + halfHeight;
 
         Vector3 posMove = new Vector3(snappedX, 0, snappedZ);
-        transform.DOMove(posMove, 0.05f);
-        outline.enabled =  false;
+        transform.DOMove(posMove, 0.05f).OnComplete(() =>
+        {
+            Destroy(rb);
+        });
+        outline.enabled = false;
     }
     public void SetIsHintDestroy(bool status)
     {

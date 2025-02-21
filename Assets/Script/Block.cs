@@ -12,8 +12,7 @@ public class Block : MonoBehaviour
     public BlockType blockType;
     public MeshRenderer mr;
     public TextMeshProUGUI stepUnlockText;
-    private Collider collider;
-    public bool isFull;
+    private Collider blockCollider;
 
     [ShowIf("blockType",BlockType.ICE)]
     [TabGroup("ICE TYPE")]
@@ -36,7 +35,7 @@ public class Block : MonoBehaviour
     {
         stepUnlockText.gameObject.SetActive(blockType == BlockType.ICE);
         SetTextUnlockBlock(stepUnlock);
-        collider  = GetComponent<Collider>();
+        blockCollider  = GetComponent<Collider>();
     }
     [Button("Rotate Block")]
     public void Rotate()
@@ -78,9 +77,8 @@ public class Block : MonoBehaviour
     {
         if(listSittingTransform.Count == 0)
         {
+            blockCollider.enabled = false;
             outline.enabled = false;
-            collider.enabled = false;
-            isFull = true;
             ObserverManager.Defrost();
             Departure();
         }

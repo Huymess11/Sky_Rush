@@ -386,11 +386,12 @@ public class GridCell : SerializedMonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
+        if (transportCoroutine != null) return;
         if (!isGate || listCustomer.Count == 0) return;
         if ((mask.value & (1 << other.gameObject.layer)) > 0)
         {
             block = other.gameObject.GetComponent<Block>();
-
+            Debug.Log("Hello");
             transportCoroutine = StartCoroutine(TransportCoroutine());
 
         }
@@ -399,10 +400,14 @@ public class GridCell : SerializedMonoBehaviour
     {
         if ((mask.value & (1 << other.gameObject.layer)) > 0)
         {
-            if (transportCoroutine != null)
+            if (!collider.bounds.Contains(other.transform.position)) // Ki?m tra n?u object ?ã ra kh?i vùng
             {
-                Debug.Log("Ok");
-                StopCoroutine(transportCoroutine);
+                if (transportCoroutine != null)
+                {
+                    Debug.Log("D?ng Coroutine vì block ?ã hoàn toàn thoát kh?i vùng GridCell.");
+                    StopCoroutine(transportCoroutine);
+                    transportCoroutine = null;
+                }
             }
         }
     }

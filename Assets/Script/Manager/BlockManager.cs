@@ -50,17 +50,4 @@ public class BlockManager : MonoBehaviour
             listBlock.RemoveAll(item => item == null);
         }
     }
-
-    //public void CheckWin()
-    //{
-    //    ReviewList();
-    //    foreach (var child in listBlock)
-    //    {
-    //        if (!child.isFull)
-    //        {
-    //            return;
-    //        }
-    //    }
-    //    LevelManager.Instance.Victory();
-    //}
 }
