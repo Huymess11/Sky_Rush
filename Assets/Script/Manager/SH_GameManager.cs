@@ -26,7 +26,7 @@ public class SH_GameManager : MonoBehaviour
 
     private void Start()
     {
-        SpawnLevel();
+        //SpawnLevel();
     }
     public void SpawnLevel()
     {

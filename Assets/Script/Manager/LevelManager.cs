@@ -69,7 +69,7 @@ public class LevelManager : MonoBehaviour
     {
         Debug.Log("Chuc mung ban da thang !");
         ObserverManager.Victory(true);
-        Invoke(nameof(NextLevelTest),1f);
+        //Invoke(nameof(NextLevelTest),1f);
     }
     private void NextLevelTest()
     {
@@ -79,7 +79,7 @@ public class LevelManager : MonoBehaviour
     public void Defeat()
     {
         Time.timeScale = 0f;
-        SH_GameManager.Instance.ShowGOPanel();
+       // SH_GameManager.Instance.ShowGOPanel();
         Debug.Log("Con ga con !");
     }
 }

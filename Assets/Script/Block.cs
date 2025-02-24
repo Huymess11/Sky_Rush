@@ -3,11 +3,14 @@ using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 public class Block : MonoBehaviour
 {
+    public List<Vector3> listFirstDefaultPoint; 
     public List<Transform> listSittingTransform;
+    [SerializeField] private Transform sittingPositionParent;
     public ColorType blockColor;
     public BlockType blockType;
     public MeshRenderer mr;
@@ -17,7 +20,8 @@ public class Block : MonoBehaviour
     [ShowIf("blockType",BlockType.ICE)]
     [TabGroup("ICE TYPE")]
     public int stepUnlock;
-    private Outline outline;
+    private Outline outline; 
+
 
     private void Awake()
     {
@@ -36,6 +40,52 @@ public class Block : MonoBehaviour
         stepUnlockText.gameObject.SetActive(blockType == BlockType.ICE);
         SetTextUnlockBlock(stepUnlock);
         blockCollider  = GetComponent<Collider>();
+    }
+
+    [Button ("Create Sitting Position")]
+    private void CreateSittingPosition()
+    {
+        ClearSittingPosition();
+        float offSetFloor = 0f;
+        for(int i = 0; i < 4; i++)
+        {
+            offSetFloor += 0.25f;
+            for (int j = 0; j< listFirstDefaultPoint.Count; j++)
+            {
+                GameObject newSitting = new GameObject("Sitting Position" + i);
+                newSitting.transform.SetParent(sittingPositionParent);
+                Vector3 newPos = listFirstDefaultPoint[j];
+                newPos.y = offSetFloor;
+                newSitting.transform.localPosition = newPos;
+                listSittingTransform.Add(newSitting.transform);
+            }
+        }
+    }
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        foreach (var sitting in listSittingTransform)
+        {
+            if (sitting != null)
+            {
+                Gizmos.DrawSphere(sitting.transform.position, 0.2f);
+            }
+        }
+    }
+    [Button("Clear Sitting Position")]
+    private void ClearSittingPosition()
+    {
+        if(listSittingTransform != null)
+        {
+            foreach (var sitting in listSittingTransform)
+            {
+                if (sitting != null)
+                {
+                    DestroyImmediate(sitting.gameObject);
+                }
+            }
+            listSittingTransform.Clear();
+        }
     }
     [Button("Rotate Block")]
     public void Rotate()

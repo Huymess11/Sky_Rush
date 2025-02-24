@@ -41,6 +41,8 @@ public class TimeManager : MonoBehaviour
 
     private IEnumerator Countdown()
     {
+        _timeCountDown = timeCountDown;
+        _timeCountDown *= 60f;
         while (_timeCountDown > 0)
         {
             if (!isPaused)

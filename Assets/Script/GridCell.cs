@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -223,60 +224,32 @@ public class GridCell : SerializedMonoBehaviour
         {
             count += gateInfor[i].quantity;
         }
-        float offset = 0.25f;
+        float offset = 0.75f;
         Vector3 startPosition = Vector3.zero;
-        Vector3 moveDir = Vector3.zero;
-        Vector3 sideDir = Vector3.zero;
-        int randomX = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
-        int randomZ = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
+        Vector3 moveDir = new Vector3(0, 1, 0);
         switch (gateDir)
         {
             case GateDir.TOP:
                 startPosition = T_Carpet.transform.position;
                 startPosition.z += offset;
-                moveDir = new Vector3(0, 0, 1);
-                sideDir = new Vector3(randomX, 0, 0); 
                 break;
             case GateDir.BOTTOM:
                 startPosition = B_Carpet.transform.position;
                 startPosition.z -= offset;
-                moveDir = new Vector3(0, 0, -1);
-                sideDir = new Vector3(randomX, 0, 0);
                 break;
             case GateDir.LEFT:
 
                 startPosition = L_Carpet.transform.position;
-                startPosition.x -= offset;
-                moveDir = new Vector3(-1, 0, 0); 
-                sideDir = new Vector3(0, 0, randomZ);  
+                startPosition.x -= offset;  
                 break;
             case GateDir.RIGHT:
                 startPosition = R_Carpet.transform.position;
                 startPosition.x += offset;
-                moveDir = new Vector3(1, 0, 0);
-                sideDir = new Vector3(0, 0, randomZ);
                 break;
         }
-
-        Vector3 currentPosition = startPosition;
-        int step = 0;
-
-        while (step < count)
+        for(int i = 0; i < count; i++)
         {
-            int forwardSteps = UnityEngine.Random.Range(2, 6);
-            for (int i = 0; i < forwardSteps && step < count; i++, step++)
-            {
-                listQueueCustomerPosition.Add(currentPosition);
-                currentPosition += moveDir * customerDistance;
-            }
-
-            if (step >= count) break;
-            int sideSteps = UnityEngine.Random.Range(2, 4);
-            for (int i = 0; i < sideSteps && step < count; i++, step++)
-            {
-                listQueueCustomerPosition.Add(currentPosition);
-                currentPosition += sideDir * customerDistance;
-            }
+            listQueueCustomerPosition.Add(startPosition + moveDir * customerDistance * i);
         }
 
         SpawnCustomer();
@@ -288,9 +261,10 @@ public class GridCell : SerializedMonoBehaviour
         foreach (var position in listQueueCustomerPosition)
         {
             Customer customer = Instantiate(customerPrefab, position, Quaternion.identity, transform);
-            customer.gameObject.transform.localPosition = new Vector3(customer.transform.localPosition.x, 0.5f, customer.transform.localPosition.z);
-            customer.gameObject.transform.localScale = Vector3.one * 3f;
-            customer.transform.forward = -transform.position;
+           // customer.gameObject.transform.localPosition = new Vector3(0f, customer.transform.localPosition.y, 0f);
+            customer.gameObject.transform.localScale = Vector3.one * 500f;
+            customer.gameObject.transform.eulerAngles =  new Vector3(90f, 0f, 0f);
+            //customer.transform.forward = -transform.position;
             listCustomer.Add(customer);
             _gridLevelController._levelManager.listAllCustomer.Add(customer);  
         }
@@ -400,11 +374,10 @@ public class GridCell : SerializedMonoBehaviour
     {
         if ((mask.value & (1 << other.gameObject.layer)) > 0)
         {
-            if (!collider.bounds.Contains(other.transform.position)) // Ki?m tra n?u object ?ã ra kh?i vùng
+            if (!collider.bounds.Contains(other.transform.position)) 
             {
                 if (transportCoroutine != null)
                 {
-                    Debug.Log("D?ng Coroutine vì block ?ã hoàn toàn thoát kh?i vùng GridCell.");
                     StopCoroutine(transportCoroutine);
                     transportCoroutine = null;
                 }
